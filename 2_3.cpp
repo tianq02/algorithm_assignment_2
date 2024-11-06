@@ -28,8 +28,9 @@ int numbers[1000] = {0};
 int MedianIn5(int num5[], int l=0, int r=5);
 
 int MedianIn5(int num5[], int l, int r) {
+    // TODO: not implemented
     if (l <= r) return -1;  // param check
-    return 0;
+    return num5[0];
 }
 
 
