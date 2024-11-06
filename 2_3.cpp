@@ -19,12 +19,18 @@ int numbers[1000] = {0};
 /**
  * get the index of median number in an array of numbers with length 5
  * change lr in real world cases, e.g. last group of 5 in BFPRT
+ * beware we're not checking array boundaries here
  * @param num5 the array you want to determine its median
  * @param l left offset, search would start at num5[l]
  * @param r right offset, search ends at num5[r]
- * @return
+ * @return index of median number, should be int between l and r. on error return -1
  */
 int MedianIn5(int num5[], int l=0, int r=5);
+
+int MedianIn5(int num5[], int l, int r) {
+    if (l <= r) return -1;  // param check
+    return 0;
+}
 
 
 int main() {
