@@ -13,29 +13,93 @@
  */
 
 #include <iostream>
+#include <random>
 
-int numbers[1000] = {0};
+int numbers[10000] = {0};
 
 /**
- * get the index of median number in an array of numbers with length 5
- * change lr in real world cases, e.g. last group of 5 in BFPRT
- * beware we're not checking array boundaries here
+ * get the median number in an array of numbers with length 5.
+ * change lr in real world cases, e.g. last group of 5 in BFPRT.
+ * beware we're not checking array boundaries here.
+ * this function has no side effects, have fun multithreading.
+ * average time: O(n^2), space: O(1)
  * @param num5 the array you want to determine its median
  * @param l left offset, search would start at num5[l]
  * @param r right offset, search ends at num5[r]
- * @return index of median number, should be int between l and r. on error return -1
+ * @return value of median number, should be int between l and r. on error return -1
  */
-int MedianIn5(int num5[], int l=0, int r=5);
+int MedianIn5(const int num5[], int l = 0, int r = 4);
 
-int MedianIn5(int num5[], int l, int r) {
-    // TODO: not implemented
-    if (l <= r) return -1;  // param check
-    return num5[0];
+/**
+ * Another implementation of median_in_five
+ * It performs bubble sort on given range of array to get median number, leaving some side effect
+ * average time: O(n^2), space: O(1)
+ * @param num5 the array you want to determine its median
+ * @param l left offset, search would start at num5[l]
+ * @param r right offset, search ends at num5[r]
+ * @return value of median number, should be int between l and r. on error return -1
+ */
+int Sort5(int num5[], int l = 0, int r = 4);
+
+int MedianIn5(const int num5[], const int l, const int r) {
+    // idea: find smallest each time until desired rank.
+    if (l > r) return -1;
+    const int targetRank = (r + l) / 2 + 1;
+    std::cout << "TargetRank:" << targetRank << std::endl;
+    int lastMin = INT_MIN, curRanked = 0;
+    while (curRanked < targetRank) {
+        int newMin = INT_MAX, newRanked = 0;
+        for (int i = l; i <= r; i++) {
+            if (num5[i] > lastMin & num5[i] < newMin) {
+                newMin = num5[i];
+                newRanked = 1;
+            } else if (num5[i] == newMin) {
+                newRanked++;
+            }
+        }
+        curRanked += newRanked;
+        lastMin = newMin;
+        std::cout << "CurRank:" << curRanked << "\tNewRanked:" << newRanked << "\tValue:" << newMin << std::endl;
+    }
+
+    return lastMin;
+}
+
+int Sort5(int num5[], int l, int r) {
+    if (l > r) return -1;
+    for (int i = l; i <= r; i++) {
+        for (int j = i; j <= r; j++) {
+            if (num5[i] > num5[j]) {
+                int temp = num5[i];
+                num5[i] = num5[j];
+                num5[j] = temp;
+            }
+        }
+    }
+    return num5[(l + r) / 2];
 }
 
 
 int main() {
     std::cout << "Solution 2_3" << std::endl;
+    int array[5] = {1, 2, 3, 4, 5};
+    int randomArray[5] = {1, 2, 2, 4, 3};
+    std::cout << "Median is " << MedianIn5(array, 0, 4) << std::endl;
+    std::cout << "Median is " << MedianIn5(randomArray, 0, 4) << std::endl;
+
+    int randomArray2[100] = {};
+    auto engine = std::default_random_engine{static_cast<unsigned>(time(nullptr))*2};
+    auto rng = std::uniform_int_distribution<int>(0, 50);
+    for (int &i: randomArray2) {
+        i = rng(engine);
+        std::cout << i << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "Median is " << MedianIn5(randomArray2, 0, 99) << std::endl;
+    std::cout << "Median is " << Sort5(randomArray2, 0, 99) << std::endl;
+
+
     return 0;
 }
 
