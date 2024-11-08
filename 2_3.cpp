@@ -97,9 +97,9 @@ int main() {
     std::uniform_int_distribution<int> uniform_dist(1, 100);
 
     int numbers[100] = {0};
-    for (int &i: numbers) {
-        i = uniform_dist(rng);
-        std::cout << i << " ";
+    for (int i = 0; i < 100; i++) {
+        numbers[i] = uniform_dist(rng);
+        std::cout << i << ":\t" << numbers[i] << std::endl;
     }
     std::cout << std::endl;
     const int median1 = Median5(numbers, 0, 99);
