@@ -24,12 +24,14 @@ int numbers[10000] = {0};
  * beware we're not checking array boundaries here.
  * this function has no side effects, have fun multithreading.
  * average time: O(n^2), space: O(1)
+ * when t<<n, average time O(n)
  * @param num5 the array you want to determine its median
  * @param l left offset, search would start at num5[l]
  * @param r right offset, search ends at num5[r]
- * @return value of median number, should be int between l and r. on error return -1
+ * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
+ * @return value of median or rank t, should be int between l and r. on error return -1
  */
-int MedianIn5(const int num5[], int l = 0, int r = 4);
+int Median5(const int num5[], int l = 0, int r = 4, int t = -1);
 
 /**
  * Another implementation of median_in_five
@@ -38,17 +40,23 @@ int MedianIn5(const int num5[], int l = 0, int r = 4);
  * @param num5 the array you want to determine its median
  * @param l left offset, search would start at num5[l]
  * @param r right offset, search ends at num5[r]
- * @return value of median number, should be int between l and r. on error return -1
+ * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
+ * @return value of median or rank t, should be int between l and r. on error return -1
  */
-int Sort5(int num5[], int l = 0, int r = 4);
+int Sorted5(int num5[], int l = 0, int r = 4, int t = -1);
 
-int MedianIn5(const int num5[], const int l, const int r) {
+int Partition(int array[], int l, int r, int pivot);
+
+auto ComputeMedian = Median5;
+
+int Median5(const int num5[], const int l, const int r, const int t) {
     // idea: find smallest each time until desired rank.
-    if (l > r) return -1;
-    const int targetRank = (r + l) / 2 + 1;
-    // std::cout << "TargetRank:" << targetRank << std::endl;
+    if (l > r || t > r - l) return -1;
+    const int targetRank = t < 0 ? (l + r) / 2 : t;
+    std::cout << "TargetRank:" << targetRank << "(" << targetRank + 1 << "th ranked)" << std::endl;
     int lastMin = INT_MIN, curRanked = 0;
-    while (curRanked < targetRank) {
+    // +1是因为targetRank从0开始，而curRanked是计数从1开始
+    while (curRanked < targetRank + 1) {
         int newMin = INT_MAX, newRanked = 0;
         for (int i = l; i <= r; i++) {
             if (num5[i] > lastMin & num5[i] < newMin) {
@@ -60,14 +68,14 @@ int MedianIn5(const int num5[], const int l, const int r) {
         }
         curRanked += newRanked;
         lastMin = newMin;
-        // std::cout << "CurRank:" << curRanked << "\tNewRanked:" << newRanked << "\tValue:" << newMin << std::endl;
+        std::cout << "CurRanked:" << curRanked << "\tNewRanked:" << newRanked << "\tValue:" << newMin << std::endl;
     }
 
     return lastMin;
 }
 
-int Sort5(int num5[], int l, int r) {
-    if (l > r) return -1;
+int Sorted5(int num5[], const int l, const int r, const int t) {
+    if (l > r || t > r - l) return -1;
     for (int i = l; i <= r; i++) {
         for (int j = i; j <= r; j++) {
             if (num5[i] > num5[j]) {
@@ -77,8 +85,10 @@ int Sort5(int num5[], int l, int r) {
             }
         }
     }
-    return num5[(l + r) / 2];
+    if (t < 0) return num5[(l + r) / 2];
+    return num5[t];
 }
+
 
 int main() {
     // PCG RNG magic, see https://www.pcg-random.org/using-pcg-cpp.htm
@@ -91,34 +101,15 @@ int main() {
         i = uniform_dist(rng);
         std::cout << i << " ";
     }
+    std::cout << std::endl;
+    const int median1 = Median5(numbers, 0, 99);
+    const int median2 = ComputeMedian(numbers, 0, 99, -1);
+    const int median3 = Sorted5(numbers, 0, 99);
+    std::cout << "median1:" << median1 << std::endl;
+    std::cout << "median2:" << median2 << std::endl;
+    std::cout << "median3:" << median3 << std::endl;
+    for (int i = 0; i < 100; i++) std::cout << i << ":\t" << numbers[i] << std::endl;
 }
-
-
-// int main1() {
-//     std::cout << "Solution 2_3" << std::endl;
-//     int array[5] = {1, 2, 3, 4, 5};
-//     int randomArray[5] = {1, 2, 2, 4, 3};
-//     std::cout << "Median is " << MedianIn5(array, 0, 4) << std::endl;
-//     std::cout << "Median is " << MedianIn5(randomArray, 0, 4) << std::endl;
-//
-//     int randomArray2[100] = {};
-//     auto engine = std::default_random_engine{static_cast<unsigned>(time(nullptr))*2};
-//     auto rng = std::uniform_int_distribution<int>(0, 50);
-//     for (int &i: randomArray2) {
-//         i = rng(engine);
-//         std::cout << i << std::endl;
-//     }
-//     std::cout << std::endl;
-//
-//     std::cout << "Median is " << MedianIn5(randomArray2, 0, 99) << std::endl;
-//     std::cout << "Median is " << Sort5(randomArray2, 0, 99) << std::endl;
-//
-//     for (int i : randomArray2) {
-//         std::cout << i << " ";
-//     }
-//     return 0;
-// }
-
 
 /**
 * 下面时早期一些不成熟的想法，有明显的错误，删了可惜，就留在这里了
