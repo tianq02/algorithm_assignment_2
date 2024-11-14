@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <random>
+#include <climits>
 #include "pcg_random.hpp"
 
 int numbers[10000] = {0};
