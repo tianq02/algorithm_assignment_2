@@ -13,9 +13,9 @@
  */
 
 #include <iostream>
-#include <random>
-#include <climits>
-#include "pcg_random.hpp"
+#include <random>  // 为了在PCG算法中使用C11风格的 random device 安全初始化
+#include <climits>  // 删了这行，debian上的g++不认INT_MIN
+#include "pcg_random.hpp"  // 非常优秀的现代伪随机生成器
 
 int numbers[10000] = {0};
 
@@ -44,7 +44,8 @@ int CountedNth(const int arr[], int l = 0, int r = 4, int t = -1);
  * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
  * @return value of median or rank t, should be a number in array between l and r. on error return -1
  */
-int SortedNth(int arr[], int l = 0, int r = 4, int t = -1);
+template<typename NumType>
+NumType SortedNth(NumType arr[], int l = 0, int r = 4, int t = -1);
 
 /**
  * get median using std sort.
@@ -64,7 +65,8 @@ int StdSortedNth(int arr[], int l = 0, int r = 4, int t = -1);
  * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
  * @return value of median or rank t, should be a number in array between l and r. on error return -1
  */
-int BruteNth(int arr[], int l = 0, int r = 4, int t = -1) {
+template<typename NumType>
+int BruteNth(NumType arr[], int l = 0, int r = 4, int t = -1) {
     return SortedNth(arr, l, r, t);
 }
 
@@ -76,7 +78,8 @@ int BruteNth(int arr[], int l = 0, int r = 4, int t = -1) {
  * @param r right offset, search ends at arr[r]
  * @return median number
  */
-double BruteMedian(int arr[], int l = 0, int r = 4);
+template<typename NumType>
+NumType BruteMedian(NumType arr[], int l = 0, int r = 4);
 
 int CountedNth(const int arr[], const int l, const int r, const int t) {
     // idea: find smallest each time until desired rank.
@@ -103,15 +106,15 @@ int CountedNth(const int arr[], const int l, const int r, const int t) {
     return lastMin;
 }
 
-int SortedNth(int arr[], const int l, const int r, const int t) {
+template<typename NumType>
+NumType SortedNth(NumType arr[], const int l, const int r, const int t) {
     if (l > r || t > r - l) return -1;
     for (int i = l; i <= r; i++) {
         for (int j = i; j <= r; j++) {
-            if (arr[i] > arr[j]) {
-                int temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-            }
+            if (arr[i] <= arr[j]) continue;
+            NumType temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
         }
     }
     if (t < 0) return arr[(l + r) / 2];
@@ -125,7 +128,8 @@ int StdSortedNth(int arr[], const int l, const int r, const int t) {
     return arr[t];
 }
 
-double BruteMedian(int arr[], const int l, const int r) {
+template<typename NumType>
+NumType BruteMedian(NumType arr[], const int l, const int r) {
     if (l > r) return -1;
     const int midL = (l + r) / 2;
     const int midR = (l + r + 1) / 2;
@@ -133,32 +137,62 @@ double BruteMedian(int arr[], const int l, const int r) {
     if (midL == midR)
         return BruteNth(arr, l, r, midL);
 
-    return (static_cast<double>(BruteNth(arr, l, r, midL)) + static_cast<double>(BruteNth(arr, l, r, midR)))/2;
+    return (static_cast<NumType>(BruteNth(arr, l, r, midL)) + static_cast<NumType>(BruteNth(arr, l, r, midR)))/2;
 }
 
 
 
-
+// int main() {
+//     // PCG RNG magic, see https://www.pcg-random.org/using-pcg-cpp.htm
+//     pcg_extras::seed_seq_from<std::random_device> seed_source;
+//     pcg32 rng(seed_source);
+//     std::uniform_int_distribution<int> uniform_dist(1, 100);
+//
+//     int numbers[100] = {0};
+//     for (int i = 0; i < 10; i++) {
+//         numbers[i] = uniform_dist(rng);
+//         // std::cout << i << ":\t" << numbers[i] << std::endl;
+//         std::cout << numbers[i] << ",\t";
+//     }
+//
+//     double median = BruteMedian(numbers, 0, 10);
+//     std::cout << median << std::endl;
+//
+//     double variations[100];
+//
+//     for (int i=0; i<100; i++) {
+//         variations[i] = numbers[i] > median ? (numbers[i] - median) : (median - numbers[i]);
+//     }
+//
+//     return 0;
+// }
 
 int main() {
     // PCG RNG magic, see https://www.pcg-random.org/using-pcg-cpp.htm
     pcg_extras::seed_seq_from<std::random_device> seed_source;
     pcg32 rng(seed_source);
-    std::uniform_int_distribution<int> uniform_dist(1, 100);
+    std::uniform_real_distribution<double> uniform_dist(1, 100);
 
-    int numbers[100] = {0};
-    for (int i = 0; i < 100; i++) {
+    double numbers[100] = {0};
+    for (int i = 0; i < 10; i++) {
         numbers[i] = uniform_dist(rng);
-        std::cout << i << ":\t" << numbers[i] << std::endl;
+        // std::cout << i << ":\t" << numbers[i] << std::endl;
+        std::cout << numbers[i] << ",\t";
     }
     std::cout << std::endl;
-    const int median1 = CountedNth(numbers, 0, 99);
-    const int median2 = BruteNth(numbers, 0, 99, -1);
-    const int median3 = SortedNth(numbers, 0, 99);
-    std::cout << "median1:" << median1 << std::endl;
-    std::cout << "median2:" << median2 << std::endl;
+    // const int median1 = CountedNth(numbers, 0, 9);
+    // const int median2 = BruteNth(numbers, 0, 9);
+    const double median3 = SortedNth(numbers, 0, 9);
+    const double median4 = BruteMedian(numbers, 0, 9);
+    // std::cout << "median1:" << median1 << std::endl;
+    // std::cout << "median2:" << median2 << std::endl;
     std::cout << "median3:" << median3 << std::endl;
-    for (int i = 0; i < 100; i++) std::cout << i << ":\t" << numbers[i] << std::endl;
+    std::cout << "median4:" << median4 << std::endl;
+    for (int i = 0; i < 10; i++)
+        // std::cout << i << ":\t" << numbers[i] << std::endl;
+        std::cout << numbers[i] << ",\t";
+    return 0;
+
 }
 
 /**
