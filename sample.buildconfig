@@ -1,0 +1,11 @@
+[default-2]
+name=I am Not Default Config
+runtime=host
+toolchain=default
+config-opts=
+run-opts=
+prefix=/home/tianq/工程/.gnome-builder/projects/algorithm-assignment2/install/host
+app-id=
+postbuild=
+prebuild=
+run-command=
