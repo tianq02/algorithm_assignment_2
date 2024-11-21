@@ -1,3 +1,5 @@
+# rename as `.buildconfig`, then set prefix to where the project really is
+# we are not sandboxing our development
 [default-2]
 name=I am Not Default Config
 runtime=host
