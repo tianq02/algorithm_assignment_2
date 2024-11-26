@@ -105,7 +105,7 @@ NumType CountedNth(const NumType arr[], const int l, const int r, const int t) {
         curRanked += newRanked;
         lastMin = newMin;
         // std::cout << "CurRanked:" << curRanked << "\tNewRanked:" << newRanked << "\tValue:" << newMin << std::endl;
-    }git add *
+    }
 
     return lastMin;
 }
