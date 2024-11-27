@@ -18,6 +18,7 @@
 #include "pcg_random.hpp"  // 非常优秀的现代伪随机生成器
 
 double numbers[10000] = {0};
+constexpr int bfprtGroupSize = 5;
 
 /**
  * get the median number by counting occurrence.
@@ -69,7 +70,7 @@ NumType StdSortedNth(NumType arr[], int l = 0, int r = 4, int t = -1);
  */
 template<typename NumType>
 NumType BruteNth(NumType arr[], int l = 0, int r = 4, int t = -1) {
-    return SortedNth(arr, l, r, t);
+    return CountedNth(arr, l, r, t);
 }
 
 /**
@@ -112,7 +113,7 @@ NumType CountedNth(const NumType arr[], const int l, const int r, const int t) {
 
 template<typename NumType>
 NumType SortedNth(NumType arr[], const int l, const int r, const int t) {
-    if (l > r || t > r - l) return -1;
+    if (l > r || t > r - l) return NumType();
     for (int i = l; i <= r; i++) {
         for (int j = i; j <= r; j++) {
             if (arr[i] <= arr[j]) continue;
@@ -127,7 +128,7 @@ NumType SortedNth(NumType arr[], const int l, const int r, const int t) {
 
 template<typename NumType>
 NumType StdSortedNth(NumType arr[], const int l, const int r, const int t) {
-    if (l > r || t > r - l) return -1;
+    if (l > r || t > r - l) return NumType();
     std::sort(arr + l, arr + r);
     if (t < 0) return arr[(l + r) / 2];
     return arr[t];
@@ -135,7 +136,7 @@ NumType StdSortedNth(NumType arr[], const int l, const int r, const int t) {
 
 template<typename NumType>
 NumType BruteMedian(NumType arr[], const int l, const int r) {
-    if (l > r) return -1;
+    if (l > r) return NumType();
     const int midL = (l + r) / 2;
     const int midR = (l + r + 1) / 2;
 
@@ -145,60 +146,81 @@ NumType BruteMedian(NumType arr[], const int l, const int r) {
     return (BruteNth(arr, l, r, midL) + BruteNth(arr, l, r, midR)) / NumType(2);
 }
 
+template<typename NumType>
+NumType PickFirst(NumType arr[], const int l, const int r) {
+    if (l > r) return NumType();
+    return arr[l];
+}
 
-// int main() {
-//     // PCG RNG magic, see https://www.pcg-random.org/using-pcg-cpp.htm
-//     pcg_extras::seed_seq_from<std::random_device> seed_source;
-//     pcg32 rng(seed_source);
-//     std::uniform_int_distribution<int> uniform_dist(1, 100);
-//
-//     int numbers[100] = {0};
-//     for (int i = 0; i < 10; i++) {
-//         numbers[i] = uniform_dist(rng);
-//         // std::cout << i << ":\t" << numbers[i] << std::endl;
-//         std::cout << numbers[i] << ",\t";
-//     }
-//
-//     double median = BruteMedian(numbers, 0, 10);
-//     std::cout << median << std::endl;
-//
-//     double variations[100];
-//
-//     for (int i=0; i<100; i++) {
-//         variations[i] = numbers[i] > median ? (numbers[i] - median) : (median - numbers[i]);
-//     }
-//
-//     return 0;
-// }
+template<typename NumType>
+NumType PickMedian(NumType arr[], const int l, const int r) {
+    if (l > r) return NumType();
+    return BruteNth(arr, l, r, -1);
+}
+
+template<typename NumType>
+NumType PickRandom(NumType arr[], const int l, const int r) {
+    if (l > r) return NumType();
+    pcg_extras::seed_seq_from<std::random_device> seed_source;
+    pcg32 rng(seed_source);
+    std::uniform_real_distribution<> uniform_dist(l, r);
+    return arr[uniform_dist(rng)];
+}
+
+template<typename NumType>
+NumType PickBfprt(NumType arr[], const int l, const int r) {
+    std::cout << "PickBfprt" << std::endl;
+    for (int i = l; i < r; i++)
+        // std::cout << i << ":\t" << numbers[i] << std::endl;
+        std::cout << arr[i] << "/ ";
+    std::cout << std::endl;
+
+    const int total = r - l + 1;
+    if (total < 1) return NumType();
+    if (total <= bfprtGroupSize) return PickMedian(arr, l, r);
+
+    const int groups = (total + bfprtGroupSize - 1) / bfprtGroupSize;
+    auto *medians = new NumType[groups];
+    for (int i = 0; i < groups - 1; i++) {
+        medians[i] = PickMedian(arr, l + bfprtGroupSize * i, l + bfprtGroupSize * (i + 1) - 1);
+        std::cout << medians[i] << std::endl;
+    }
+    NumType pick = PickBfprt(medians, 0, groups - 1);
+    free(medians);
+    return pick;
+}
 
 int main() {
-
     std::cout.precision(4);
     // PCG RNG magic, see https://www.pcg-random.org/using-pcg-cpp.htm
     pcg_extras::seed_seq_from<std::random_device> seed_source;
     pcg32 rng(seed_source);
-    std::uniform_real_distribution<double> uniform_dist(1, 100);
+    std::uniform_real_distribution<> uniform_dist(1, 100);
+    // std::uniform_int_distribution<> uniform_dist(1, 100);
 
-    double numbers[100] = {0};
+    double numbers[100] = {};
     for (int i = 0; i < 10; i++) {
         numbers[i] = uniform_dist(rng);
         // std::cout << i << ":\t" << numbers[i] << std::endl;
         std::cout << numbers[i] << "/ ";
     }
     std::cout << std::endl;
-    const double median1 = CountedNth(numbers, 0, 9);
-    const double median2 = BruteNth(numbers, 0, 9);
-    const double median3 = SortedNth(numbers, 0, 9);
-    const double median4 = BruteMedian(numbers, 0, 9);
+    const auto median1 = CountedNth(numbers, 0, 9);
+    const auto median2 = BruteNth(numbers, 0, 9);
+    const auto median3 = SortedNth(numbers, 0, 9);
+    const auto median4 = BruteMedian(numbers, 0, 9);
+    const auto median5 = PickBfprt(numbers, 0, 9);
     std::cout << "median1:" << median1 << std::endl;
     std::cout << "median2:" << median2 << std::endl;
     std::cout << "median3:" << median3 << std::endl;
     std::cout << "median4:" << median4 << std::endl;
+    std::cout << "median5:" << median5 << std::endl;
     for (int i = 0; i < 10; i++)
         // std::cout << i << ":\t" << numbers[i] << std::endl;
         std::cout << numbers[i] << "/ ";
     return 0;
 }
+
 
 /**
  * BFPRT算法：

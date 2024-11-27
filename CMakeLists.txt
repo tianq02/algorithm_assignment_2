@@ -15,3 +15,4 @@ install(TARGETS 2_3
 install(TARGETS 2_4
         RUNTIME DESTINATION bin
         COMPONENT 2_4)
+add_executable(2_3v2 2_3v2.cpp)
