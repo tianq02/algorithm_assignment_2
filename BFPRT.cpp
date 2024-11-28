@@ -2,6 +2,7 @@
 // Created by tianq on 24-11-27.
 //
 #include <algorithm>
+// #include <chrono>
 #include <iostream>
 #include <vector>
 
@@ -12,7 +13,8 @@ using namespace std;
 constexpr int groupSize = 5;
 
 /**
- * get nth element in given array (brute forced)
+ * get nth element in given array.
+ * brute forced, for comparison purpose
  * @param arr the array you want to determine its nth element
  * @param N [0,arr.size()-1], return nth smallest
  * @return nth smallest element
@@ -29,7 +31,8 @@ double BruteNth(vector<double> &arr, const unsigned long long N) {
  * @attention not a mathematical median,
  */
 double BruteMedian(vector<double> arr) {
-    return BruteNth(arr, arr.size() / 2);
+    ranges::sort(arr);
+    return arr[arr.size() / 2];
 }
 
 /**
@@ -123,12 +126,14 @@ int main() {
     cout << endl;
 
     // cout << PickRandom(arr) << endl;
-    // cout << BruteMedian(arr) << endl;
+    // cout << PickFirst(arr) << endl;
     // cout << PickBfprt(arr) << endl;
-    cout << "Pivot Strategies:" << endl;
+    // cout << BruteMedian(arr) << endl;
+    // auto t0 = std::chrono::high_resolution_clock::now();
     cout << "BFPRT:\t" << QuickSelect(arr, 5, PickBfprt) << endl;
     cout << "First:\t" << QuickSelect(arr, 5, PickFirst) << endl;
     cout << "Random:\t" << QuickSelect(arr, 5, PickRandom) << endl;
+    cout << "Brute:\t" << BruteNth(arr, 5) << endl;
 
     ranges::sort(arr);
     for (const auto &num: arr) cout << num << ", ";
