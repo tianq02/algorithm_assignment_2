@@ -2,7 +2,6 @@
 // Created by tianq on 24-11-27.
 //
 #include <algorithm>
-#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -13,13 +12,24 @@ using namespace std;
 constexpr int groupSize = 5;
 
 /**
+ * get nth element in given array (brute forced)
+ * @param arr the array you want to determine its nth element
+ * @param N [0,arr.size()-1], return nth smallest
+ * @return nth smallest element
+ */
+double BruteNth(vector<double> &arr, const unsigned long long N) {
+    ranges::sort(arr);
+    return arr[N];
+}
+
+/**
  * pick median of given array
  * @param arr the array to be parsed
  * @return median of given array, when arr size is odd, bigger one is chosen
+ * @attention not a mathematical median,
  */
 double BruteMedian(vector<double> arr) {
-    ranges::sort(arr);
-    return arr[arr.size() / 2];
+    return BruteNth(arr, arr.size() / 2);
 }
 
 /**
@@ -27,8 +37,8 @@ double BruteMedian(vector<double> arr) {
  * @param arr the array to be parsed
  * @return first element from array
  */
-double PickFirst(vector<double> arr) {
-    return arr.front();
+double PickFirst(const vector<double> &arr) {
+    return arr[0];
 }
 
 /**
@@ -36,10 +46,10 @@ double PickFirst(vector<double> arr) {
  * @param arr the array to be parsed
  * @return random element from array
  */
-double PickRandom(vector<double> arr) {
+double PickRandom(const vector<double> &arr) {
     pcg_extras::seed_seq_from<std::random_device> seed_source;
     pcg32 rng(seed_source);
-    uniform_int_distribution<> dist(0, arr.size() - 1);
+    uniform_int_distribution<> dist(0, static_cast<int>(arr.size() - 1));
     return arr[dist(rng)];
 }
 
@@ -48,8 +58,7 @@ double PickRandom(vector<double> arr) {
  * @param arr the array to be parsed
  * @return element from array
  */
-double PickBfprt(vector<double> arr) {
-    if (arr.size() == 1) return arr[0];
+double PickBfprt(const vector<double> &arr) {
     if (arr.size() <= 5) return BruteMedian(arr);
 
     auto it = arr.begin();
@@ -67,14 +76,13 @@ double PickBfprt(vector<double> arr) {
 }
 
 /**
- *
- * @param arr
- * @param targetIndex
- * @param PickPivot
- * @return
+ * get nth element in given array
+ * @param arr the array you want to determine its nth element
+ * @param targetIndex [0,arr.size()-1], return nth smallest
+ * @param PickPivot Pivot Picking strategy, PickRandom should be good enough
+ * @return nth smallest element
  */
-double QuickSelect(vector<double> arr, int targetIndex, auto PickPivot = PickFirst) {
-
+double QuickSelect(vector<double> arr, const unsigned long long targetIndex, double (*PickPivot)(const vector<double>&) = PickRandom) {
     // cout << endl << "targetIndex" << targetIndex << endl;
     // for (const auto &num: arr) cout << num << ", ";
     // cout << endl;
@@ -84,17 +92,19 @@ double QuickSelect(vector<double> arr, int targetIndex, auto PickPivot = PickFir
     const double pivot = PickPivot(arr);
     // cout << "pivot: " << pivot << endl;
 
-    vector<double> left, right;
+    vector<double> left, mid, right;
     for (double &num: arr) {
         if (num < pivot) left.push_back(num);
-        else right.push_back(num);
+        else if (num > pivot) right.push_back(num);
+        else mid.push_back(num);
     }
 
-    if (left.size() >= targetIndex) {
-        // 目标在左半
+    if (targetIndex < left.size()) {
         return QuickSelect(left, targetIndex, PickPivot);
+    } else if (targetIndex < left.size() + mid.size()) {
+        return mid.front();
     } else {
-        return QuickSelect(right, targetIndex - left.size(), PickPivot);
+        return QuickSelect(right, targetIndex - left.size() - mid.size(), PickPivot);
     }
 }
 
@@ -112,12 +122,13 @@ int main() {
     }
     cout << endl;
 
-    cout << PickRandom(arr) << endl;
-    cout << BruteMedian(arr) << endl;
-    cout << PickBfprt(arr) << endl;
-    cout << QuickSelect(arr, 5, PickBfprt) << endl;
-    // cout << QuickSelect(arr, 5, PickFirst) << endl;
-    // cout << QuickSelect(arr, 5, PickRandom) << endl;
+    // cout << PickRandom(arr) << endl;
+    // cout << BruteMedian(arr) << endl;
+    // cout << PickBfprt(arr) << endl;
+    cout << "Pivot Strategies:" << endl;
+    cout << "BFPRT:\t" << QuickSelect(arr, 5, PickBfprt) << endl;
+    cout << "First:\t" << QuickSelect(arr, 5, PickFirst) << endl;
+    cout << "Random:\t" << QuickSelect(arr, 5, PickRandom) << endl;
 
     ranges::sort(arr);
     for (const auto &num: arr) cout << num << ", ";
