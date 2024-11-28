@@ -1,234 +1,76 @@
-/**
- * 2_3.cpp
- *
- * 题目：
- * 给定一个由n个互不相同的数组成的集合S，及一个正整数k≤n，
- * 试设计一个O(n)时间算法找出S中最接近S的中位数的k个数
- *
- * 思想：
- * 本题目是典型的线性查找+topK排序问题
- * step.1 线性查找算法(BFPRT)，确定中位数的大小
- * step.2 按照和中位数的差值做topK排序，输出结果
- *
- */
-
+#include "BFPRT.hpp"
+#include "pcg_random.hpp" // 非常优秀的现代伪随机生成器
 #include <iostream>
-#include <random>  // 为了在PCG算法中使用C11风格的 random device 安全初始化
-#include <limits>  // 在CountedNth中使用，确定对应类型的最小值和最大值
-#include "pcg_random.hpp"  // 非常优秀的现代伪随机生成器
+#include <random> // 为了在PCG算法中使用C11风格的 random device 安全初始化
+#include <vector>
+using namespace std;
 
-double numbers[10000] = {0};
-constexpr int bfprtGroupSize = 5;
+int
+main ()
+{
+  cout.precision (4);
+  int k = 0, N = 0;
+  vector<double> arr;
 
-/**
- * get the median number by counting occurrence.
- * change lr in real world cases, e.g. last group of 5 in BFPRT.
- * beware we're not checking array boundaries here.
- * this function has no side effects, have fun multithreading.
- * average time: O(n^2), space: O(1)
- * when t<<n, average time O(n)
- * @param arr the array you want to determine its median
- * @param l left offset, search would start at arr[l]
- * @param r right offset, search ends at arr[r]
- * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
- * @return value of median or rank t, should be a number in array between l and r. on error return -1
- */
-template<typename NumType>
-NumType CountedNth(const NumType arr[], int l = 0, int r = 4, int t = -1);
+  // cin >> k >> N;
+  // for (int i = 0; i < N; i++)
+  //   {
+  //     int tmp = 0;
+  //     cin >> tmp;
+  //     arr.push_back (tmp);
+  //   }
 
-/**
- * Another implementation of median.
- * It performs bubble sort on given range of array to get median number, leaving some side effect
- * average time: O(n^2), space: O(1)
- * @param arr the array you want to determine its median
- * @param l left offset, search would start at arr[l]
- * @param r right offset, search ends at arr[r]
- * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
- * @return value of median or rank t, should be a number in array between l and r. on error return -1
- */
-template<typename NumType>
-NumType SortedNth(NumType arr[], int l = 0, int r = 4, int t = -1);
+  // generate test data
+  pcg_extras::seed_seq_from<std::random_device> seed_source;
+  pcg32 rng (seed_source);
+  uniform_real_distribution<> uniform_dist (1, 100);
+  k = 5;
+  N = 10;
+  for (int i = 0; i < N; i++)
+    arr.push_back (uniform_dist (rng));
 
-/**
- * get median using std sort.
- * @param arr the array you want to determine its median
- * @param l left offset, search would start at arr[l]
- * @param r right offset, search ends at arr[r]
- * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
- * @return value of median or rank t, should be a number in array between l and r. on error return -1
- */
-template<typename NumType>
-NumType StdSortedNth(NumType arr[], int l = 0, int r = 4, int t = -1);
+  cout << "median k:" << k << ", total N:" << N << endl;
+  for (auto &i : arr)
+    cout << i << ", ";
+  cout << endl;
+  vector<double> arrSorted = arr;
+  ranges::sort (arrSorted);
+  for (auto &i : arrSorted)
+    cout << i << ", ";
+  cout << endl;
 
-/**
- * wrapper for bruteforce nth
- * @param arr the array you want to determine its median
- * @param l left offset, search would start at arr[l]
- * @param r right offset, search ends at arr[r]
- * @param t target rank, [0,r-l], get n-th smallest in given range, -1:median
- * @return value of median or rank t, should be a number in array between l and r. on error return -1
- */
-template<typename NumType>
-NumType BruteNth(NumType arr[], int l = 0, int r = 4, int t = -1) {
-    return CountedNth(arr, l, r, t);
-}
+  double lmid = QuickSelect (arr, (arr.size () - 1) / 2);
+  double rmid = QuickSelect (arr, arr.size () / 2);
+  double mid = (lmid + rmid) / 2;
+  vector<double> vars;
+  for (double &i : arr)
+    vars.push_back (abs (i - mid));
 
-/**
- * get median in given arr
- * wrap up BruteNth, calculate targeted median index, if duplicated, return their average
- * @param arr the array you want to determine its median
- * @param l left offset, search would start at arr[l]
- * @param r right offset, search ends at arr[r]
- * @return median number
- */
-template<typename NumType>
-NumType BruteMedian(NumType arr[], int l = 0, int r = 4);
+  double maxVar = QuickSelect (vars, k);
 
-template<typename NumType>
-NumType CountedNth(const NumType arr[], const int l, const int r, const int t) {
-    // idea: find smallest each time until desired rank.
-    if (l > r || t > r - l) return NumType(); // Return default value of T on error
-    const int targetRank = t < 0 ? (l + r) / 2 : t;
-    // std::cout << "TargetRank:" << targetRank << "(" << targetRank + 1 << "th ranked)" << std::endl;
-    NumType lastMin = std::numeric_limits<NumType>::min(), curRanked = 0;
-    // +1是因为targetRank从0开始，而curRanked是计数从1开始
-    while (curRanked < targetRank + 1) {
-        NumType newMin = std::numeric_limits<NumType>::max();
-        int newRanked = 0;
-        for (int i = l; i <= r; i++) {
-            if (arr[i] > lastMin & arr[i] < newMin) {
-                newMin = arr[i];
-                newRanked = 1;
-            } else if (arr[i] == newMin) {
-                newRanked++;
-            }
-        }
-        curRanked += newRanked;
-        lastMin = newMin;
-        // std::cout << "CurRanked:" << curRanked << "\tNewRanked:" << newRanked << "\tValue:" << newMin << std::endl;
+  vector<double> ans;
+  for (double &i : arr)
+    {
+      if (abs (i - mid) < maxVar)
+        ans.push_back (i);
+    }
+  for (double &i : arr) // deal with numbers equal to boundaries
+    {
+      if (abs (i - mid) <= maxVar && ans.size () < k)
+        ans.push_back (i);
     }
 
-    return lastMin;
+  cout << endl
+       << "lmid:" << lmid << ", rmid:" << rmid << ", median:" << mid << endl;
+  cout << "variations:" << endl;
+  for (auto &i : vars)
+    cout << i << ", ";
+  cout << endl;
+  cout << "maxVar:" << maxVar << endl;
+  cout << endl
+       << "answer:" << endl;
+  for (auto &i : ans)
+    cout << i << ", ";
+  cout << endl;
 }
 
-template<typename NumType>
-NumType SortedNth(NumType arr[], const int l, const int r, const int t) {
-    if (l > r || t > r - l) return NumType();
-    for (int i = l; i <= r; i++) {
-        for (int j = i; j <= r; j++) {
-            if (arr[i] <= arr[j]) continue;
-            NumType temp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = temp;
-        }
-    }
-    if (t < 0) return arr[(l + r) / 2];
-    return arr[t];
-}
-
-template<typename NumType>
-NumType StdSortedNth(NumType arr[], const int l, const int r, const int t) {
-    if (l > r || t > r - l) return NumType();
-    std::sort(arr + l, arr + r);
-    if (t < 0) return arr[(l + r) / 2];
-    return arr[t];
-}
-
-template<typename NumType>
-NumType BruteMedian(NumType arr[], const int l, const int r) {
-    if (l > r) return NumType();
-    const int midL = (l + r) / 2;
-    const int midR = (l + r + 1) / 2;
-
-    if (midL == midR)
-        return BruteNth(arr, l, r, midL);
-
-    return (BruteNth(arr, l, r, midL) + BruteNth(arr, l, r, midR)) / NumType(2);
-}
-
-template<typename NumType>
-NumType PickFirst(NumType arr[], const int l, const int r) {
-    if (l > r) return NumType();
-    return arr[l];
-}
-
-template<typename NumType>
-NumType PickMedian(NumType arr[], const int l, const int r) {
-    if (l > r) return NumType();
-    return BruteNth(arr, l, r, -1);
-}
-
-template<typename NumType>
-NumType PickRandom(NumType arr[], const int l, const int r) {
-    if (l > r) return NumType();
-    pcg_extras::seed_seq_from<std::random_device> seed_source;
-    pcg32 rng(seed_source);
-    std::uniform_real_distribution<> uniform_dist(l, r);
-    return arr[uniform_dist(rng)];
-}
-
-template<typename NumType>
-NumType PickBfprt(NumType arr[], const int l, const int r) {
-    std::cout << "PickBfprt" << std::endl;
-    for (int i = l; i < r; i++)
-        // std::cout << i << ":\t" << numbers[i] << std::endl;
-        std::cout << arr[i] << "/ ";
-    std::cout << std::endl;
-
-    const int total = r - l + 1;
-    if (total < 1) return NumType();
-    if (total <= bfprtGroupSize) return PickMedian(arr, l, r);
-
-    const int groups = (total + bfprtGroupSize - 1) / bfprtGroupSize;
-    auto *medians = new NumType[groups];
-    for (int i = 0; i < groups - 1; i++) {
-        medians[i] = PickMedian(arr, l + bfprtGroupSize * i, l + bfprtGroupSize * (i + 1) - 1);
-        std::cout << medians[i] << std::endl;
-    }
-    NumType pick = PickBfprt(medians, 0, groups - 1);
-    free(medians);
-    return pick;
-}
-
-int main() {
-    std::cout.precision(4);
-    // PCG RNG magic, see https://www.pcg-random.org/using-pcg-cpp.htm
-    pcg_extras::seed_seq_from<std::random_device> seed_source;
-    pcg32 rng(seed_source);
-    std::uniform_real_distribution<> uniform_dist(1, 100);
-    // std::uniform_int_distribution<> uniform_dist(1, 100);
-
-    double numbers[100] = {};
-    for (int i = 0; i < 10; i++) {
-        numbers[i] = uniform_dist(rng);
-        // std::cout << i << ":\t" << numbers[i] << std::endl;
-        std::cout << numbers[i] << "/ ";
-    }
-    std::cout << std::endl;
-    const auto median1 = CountedNth(numbers, 0, 9);
-    const auto median2 = BruteNth(numbers, 0, 9);
-    const auto median3 = SortedNth(numbers, 0, 9);
-    const auto median4 = BruteMedian(numbers, 0, 9);
-    const auto median5 = PickBfprt(numbers, 0, 9);
-    std::cout << "median1:" << median1 << std::endl;
-    std::cout << "median2:" << median2 << std::endl;
-    std::cout << "median3:" << median3 << std::endl;
-    std::cout << "median4:" << median4 << std::endl;
-    std::cout << "median5:" << median5 << std::endl;
-    for (int i = 0; i < 10; i++)
-        // std::cout << i << ":\t" << numbers[i] << std::endl;
-        std::cout << numbers[i] << "/ ";
-    return 0;
-}
-
-
-/**
- * BFPRT算法：
- * 相当于快速选择算法，但不同的是每次选择近似中位数作为轴值
- * 为了选择中位数，我们将数据每5个分组，分别计算中位数，并取这些中位数们的中位数（递归BFPRT）
- * 让我们来看一下如何实现这个算法：
- * 1. BFPRT函数： 输入可比较的数组和目标序号n，输出第n大的元素元素
- *    其中
- *    - 每次选择中位数作为轴值，将数组划分为两块，判断目标所处的区间，选择对应的区间进行下一步BFPRT定位
- *    - 在选择中位数时，将数组每5个元素分块各自取中位数
- */
