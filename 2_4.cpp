@@ -22,18 +22,18 @@ main ()
   // generate test data
   pcg_extras::seed_seq_from<std::random_device> seed_source;
   pcg32 rng (seed_source);
-  std::uniform_int_distribution<> dist (1, 10);
+  std::uniform_int_distribution dist (1, 10);
   N = 10;
   for (int i = 0; i < N; i++)
     arr.push_back (dist (rng));
 
   cout << "arr size:" << arr.size () << endl;
-  for (auto &i : arr)
+  for (const auto &i : arr)
     cout << i << ", ";
   cout << endl;
 
   unordered_map<int, int> map;
-  for (int &i : arr)
+  for (const int &i : arr)
     {
       if (!map.contains (i))
         {
@@ -45,13 +45,12 @@ main ()
         }
     }
   int modeValue = 0, modeCount = 0;
-  for (auto &i : map)
+  for (const auto &[fst, snd] : map)
     {
-      // hamood
-      if (i.second > modeCount)
+      if (snd > modeCount)
         {
-          modeCount = i.second;
-          modeValue = i.first;
+          modeCount = snd;
+          modeValue = fst;
         }
     }
   // ranges::sort (arr);

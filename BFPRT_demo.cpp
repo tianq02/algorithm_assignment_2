@@ -54,7 +54,7 @@ template<typename NumType>
 NumType PickRandom(const vector<NumType> &arr) {
     pcg_extras::seed_seq_from<std::random_device> seed_source;
     pcg32 rng(seed_source);
-    uniform_int_distribution<> dist(0, static_cast<int>(arr.size() - 1));
+    uniform_int_distribution dist(0, static_cast<int>(arr.size() - 1));
     return arr[dist(rng)];
 }
 

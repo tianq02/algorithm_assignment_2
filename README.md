@@ -4,7 +4,7 @@
 ## [2-3](2_3.cpp)
 
 > 给定一个由 $n$ 个互不相同的数组成的集合 $S$，及一个正整数 $k \le n$ ，试设计一个 $O(n)$ 时间算法找出 $S$ 中最接近 $S$ 的中位数的 $k$ 个数。  
-> Given a set $S$ consisting of $n$ distinct numbers and a positive integer $k \le n$, try to design an $O(n)$ time algorithm to find the knumbers closest to the median of $S$ in $S$.
+> Given a set $S$ consisting of $n$ distinct numbers and a positive integer $k \le n$, try to design an $O(n)$ time algorithm to find the $k$ numbers closest to the median of $S$ in $S$.
 
 Solution:
 
@@ -18,7 +18,7 @@ Solution:
 
 > BFPRT线性查找算法 [Blum et al. (1973)](http://people.csail.mit.edu/rivest/pubs/BFPRT73.pdf)  
 > 
-> 概括：类似快速排序，每次选择轴值左右分组查找，对于轴值的选择，在给定的区间中每5个分组分别取中位数（插入排序），对于各组中位数的结果继续取中位数（递归调用中位数算法），直到取出这些中位数们55一组的中位数，这个数跟真正的中位数八九不离十
+> 概括：类似快速排序，每次选择轴值分块查找，对于轴值的选择，在给定的区间中每5个分组分别取中位数（插入排序），对于各组中位数的结果继续取中位数（递归调用中位数算法），直到取出这些中位数们55一组的中位数，这个数跟真正的中位数八九不离十
 > 
 > 算法的时间最坏情况下也是 $O(n)$  
 

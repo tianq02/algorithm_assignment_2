@@ -23,7 +23,7 @@ main ()
   // generate test data
   pcg_extras::seed_seq_from<std::random_device> seed_source;
   pcg32 rng (seed_source);
-  uniform_int_distribution<> dist (1, 10);
+  uniform_int_distribution dist (1, 10);
   k = 5;
   N = 10;
   for (int i = 0; i < N; i++)
@@ -31,17 +31,17 @@ main ()
 
   // show input
   cout << "median k:" << k << ", total N:" << N << endl;
-  for (auto &i : arr)
+  for (const auto &i : arr)
     cout << i << ", ";
   cout << endl;
 
 
-  double lmid = QuickSelect (arr, (arr.size () - 1) / 2);
-  double rmid = QuickSelect (arr, arr.size () / 2);
-  double mid = (lmid + rmid) / 2;
+  const double lmid = QuickSelect (arr, (arr.size () - 1) / 2);
+  const double rmid = QuickSelect (arr, arr.size () / 2);
+  const double mid = (lmid + rmid) / 2;
 
   vector<double> variations;
-  for (double &i : arr)
+  for (const double &i : arr)
     variations.push_back (abs (i - mid));
 
   double maxVar = QuickSelect (variations, k-1);
@@ -69,7 +69,7 @@ main ()
   // cout << "maxVar:" << maxVar << endl;
   cout << endl
        << "answer:" << endl;
-  for (auto &i : ans)
+  for (const auto &i : ans)
     cout << i << ", ";
   cout << endl;
 }
