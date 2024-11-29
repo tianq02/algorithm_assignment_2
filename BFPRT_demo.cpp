@@ -62,7 +62,7 @@ double PickRandom(const vector<double> &arr) {
  * @return element from array
  */
 double PickBfprt(const vector<double> &arr) {
-    if (arr.size() <= 5) return BruteMedian(arr);
+    if (arr.size() <= groupSize) return BruteMedian(arr);
 
     auto it = arr.begin();
     vector<double> medians;
