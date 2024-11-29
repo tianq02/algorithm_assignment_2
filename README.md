@@ -25,6 +25,11 @@ Solution:
 
 ## [2-4](2_4.cpp)
 
-在一个由元素组成的表中，出现的次数最多的元素称为众数。试写一个寻找众数的算法，并分析其计算复杂性。
+> 在一个由元素组成的表中，出现的次数最多的元素称为众数。试写一个寻找众数的算法，并分析其计算复杂性。
+>
+> In a table composed of elements, the element that appears the most often is called the mode. Write an algorithm to find the mode and analyze its computational complexity
 
-In a table composed of elements, the element that appears the most often is called the mode. Write an algorithm to find the mode and analyze its computational complexity
+Solution:
+
+使用哈希表统计每一个元素出现的次数，接下来，输出哈希表中个数最多的一项
+时间复杂度$O(n)$
