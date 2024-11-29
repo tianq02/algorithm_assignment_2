@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+add_executable(solution2_3 submit/solution2_3.cpp)
 add_executable(2_3 2_3.cpp BFPRT.hpp)
 add_executable(2_4 2_4.cpp)
 add_executable(BFPRT BFPRT_demo.cpp)
@@ -20,3 +21,6 @@ install(TARGETS 2_4
 install(TARGETS BFPRT
        RUNTIME DESTINATION bin
        COMPONENT BFPRT)
+add_executable(generate2_3 submit/generate2_3.cpp)
+add_executable(solution2_4 submit/solution2_4.cpp)
+add_executable(generate2_4 submit/generate2_4.cpp)

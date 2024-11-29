@@ -89,7 +89,7 @@ NumType PickBfprt(const vector<NumType> &arr) {
  * @return nth smallest element
  */
 template<typename NumType>
-NumType QuickSelect(vector<NumType> arr, const unsigned long long targetIndex, NumType (*PickPivot)(const vector<NumType>&) = PickRandom) {
+NumType QuickSelect(vector<NumType> arr, const unsigned long long targetIndex, NumType (*PickPivot)(const vector<NumType>&) = PickBfprt) {
     // cout << endl << "targetIndex" << targetIndex << endl;
     // for (const NumType &num: arr) cout << num << ", ";
     // cout << endl;
