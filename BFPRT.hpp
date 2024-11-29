@@ -19,7 +19,8 @@ constexpr int groupSize = 5;
  * @param N [0,arr.size()-1], return nth smallest
  * @return nth smallest element
  */
-inline double BruteNth(vector<double> &arr, const unsigned long long N) {
+template<typename NumType>
+NumType BruteNth(vector<NumType> &arr, const unsigned long long N) {
     ranges::sort(arr);
     return arr[N];
 }
@@ -30,7 +31,8 @@ inline double BruteNth(vector<double> &arr, const unsigned long long N) {
  * @return median of given array, when arr size is odd, bigger one is chosen
  * @attention not a mathematical median,
  */
-inline double BruteMedian(vector<double> arr) {
+template<typename NumType>
+NumType BruteMedian(vector<NumType> arr) {
     ranges::sort(arr);
     return arr[arr.size() / 2];
 }
@@ -40,8 +42,9 @@ inline double BruteMedian(vector<double> arr) {
  * @param arr the array to be parsed
  * @return first element from array
  */
-inline double PickFirst(const vector<double> &arr) {
-    return arr[0];
+template<typename NumType>
+NumType PickFirst(const vector<NumType> &arr) {
+    return arr.front();
 }
 
 /**
@@ -49,7 +52,8 @@ inline double PickFirst(const vector<double> &arr) {
  * @param arr the array to be parsed
  * @return random element from array
  */
-inline double PickRandom(const vector<double> &arr) {
+template<typename NumType>
+NumType PickRandom(const vector<NumType> &arr) {
     pcg_extras::seed_seq_from<std::random_device> seed_source;
     pcg32 rng(seed_source);
     uniform_int_distribution<> dist(0, static_cast<int>(arr.size() - 1));
@@ -61,13 +65,14 @@ inline double PickRandom(const vector<double> &arr) {
  * @param arr the array to be parsed
  * @return element from array
  */
-inline double PickBfprt(const vector<double> &arr) {
+template<typename NumType>
+NumType PickBfprt(const vector<NumType> &arr) {
     if (arr.size() <= groupSize) return BruteMedian(arr);
 
     auto it = arr.begin();
-    vector<double> medians;
+    vector<NumType> medians;
     while (it != arr.end()) {
-        vector<double> group;
+        vector<NumType> group;
         while (group.size() < groupSize && it != arr.end()) {
             group.push_back(*it);
             ++it;
@@ -85,18 +90,19 @@ inline double PickBfprt(const vector<double> &arr) {
  * @param PickPivot Pivot Picking strategy, PickRandom should be good enough
  * @return nth smallest element
  */
-inline double QuickSelect(vector<double> arr, const unsigned long long targetIndex, double (*PickPivot)(const vector<double>&) = PickBfprt) {
+template<typename NumType>
+NumType QuickSelect(vector<NumType> arr, const unsigned long long targetIndex, NumType (*PickPivot)(const vector<NumType>&) = PickRandom) {
     // cout << endl << "targetIndex" << targetIndex << endl;
-    // for (const auto &num: arr) cout << num << ", ";
+    // for (const NumType &num: arr) cout << num << ", ";
     // cout << endl;
 
     if (arr.size() == 1) return arr.front();
 
-    const double pivot = PickPivot(arr);
+    const NumType pivot = PickPivot(arr);
     // cout << "pivot: " << pivot << endl;
 
-    vector<double> left, mid, right;
-    for (double &num: arr) {
+    vector<NumType> left, mid, right;
+    for (NumType &num: arr) {
         if (num < pivot) left.push_back(num);
         else if (num > pivot) right.push_back(num);
         else mid.push_back(num);
@@ -104,11 +110,11 @@ inline double QuickSelect(vector<double> arr, const unsigned long long targetInd
 
     if (targetIndex < left.size()) {
         return QuickSelect(left, targetIndex, PickPivot);
-    } else if (targetIndex < left.size() + mid.size()) {
-        return mid.front();
-    } else {
-        return QuickSelect(right, targetIndex - left.size() - mid.size(), PickPivot);
     }
+    if (targetIndex < left.size() + mid.size()) {
+        return mid.front();
+    }
+    return QuickSelect(right, targetIndex - left.size() - mid.size(), PickPivot);
 }
 
 /*
