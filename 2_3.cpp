@@ -23,50 +23,50 @@ main ()
   // generate test data
   pcg_extras::seed_seq_from<std::random_device> seed_source;
   pcg32 rng (seed_source);
-  uniform_real_distribution<> uniform_dist (1, 100);
+  uniform_int_distribution<> dist (1, 10);
   k = 5;
   N = 10;
   for (int i = 0; i < N; i++)
-    arr.push_back (uniform_dist (rng));
+    arr.push_back (dist (rng));
 
+  // show input
   cout << "median k:" << k << ", total N:" << N << endl;
   for (auto &i : arr)
     cout << i << ", ";
   cout << endl;
-  vector<double> arrSorted = arr;
-  ranges::sort (arrSorted);
-  for (auto &i : arrSorted)
-    cout << i << ", ";
-  cout << endl;
+
 
   double lmid = QuickSelect (arr, (arr.size () - 1) / 2);
   double rmid = QuickSelect (arr, arr.size () / 2);
   double mid = (lmid + rmid) / 2;
-  vector<double> vars;
+
+  vector<double> variations;
   for (double &i : arr)
-    vars.push_back (abs (i - mid));
+    variations.push_back (abs (i - mid));
 
-  double maxVar = QuickSelect (vars, k);
+  double maxVar = QuickSelect (variations, k-1);
 
-  vector<double> ans;
+  vector<double> ans, ge;
   for (double &i : arr)
     {
       if (abs (i - mid) < maxVar)
         ans.push_back (i);
+      else
+        ge.push_back (i);
     }
-  for (double &i : arr) // deal with numbers equal to boundaries
+  for (double &i : ge) // deal with numbers equal to boundaries
     {
       if (abs (i - mid) <= maxVar && ans.size () < k)
         ans.push_back (i);
     }
 
-  cout << endl
-       << "lmid:" << lmid << ", rmid:" << rmid << ", median:" << mid << endl;
-  cout << "variations:" << endl;
-  for (auto &i : vars)
-    cout << i << ", ";
-  cout << endl;
-  cout << "maxVar:" << maxVar << endl;
+  // cout << endl
+  //      << "lmid:" << lmid << ", rmid:" << rmid << ", median:" << mid << endl;
+  // cout << "variations:" << endl;
+  // for (auto &i : variations)
+  //   cout << i << ", ";
+  // cout << endl;
+  // cout << "maxVar:" << maxVar << endl;
   cout << endl
        << "answer:" << endl;
   for (auto &i : ans)
