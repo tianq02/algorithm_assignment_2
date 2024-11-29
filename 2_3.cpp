@@ -1,5 +1,5 @@
 #include "BFPRT.hpp"
-#include "pcg_random.hpp" // 非常优秀的现代伪随机生成器
+#include <pcg_random.hpp> // 非常优秀的现代伪随机生成器
 #include <iostream>
 #include <random> // 为了在PCG算法中使用C11风格的 random device 安全初始化
 #include <vector>
