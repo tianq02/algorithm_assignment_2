@@ -129,4 +129,11 @@ int main() {
     // cout << PickFirst(arr) << endl;
     // cout << PickBfprt(arr) << endl;
     // cout << BruteMedian(arr) << endl;
-    // auto t0 = std::chrono::high_r
+    cout << "BFPRT:\t" << QuickSelect(arr, 5, PickBfprt) << endl;
+    cout << "First:\t" << QuickSelect(arr, 5, PickFirst) << endl;
+    cout << "Random:\t" << QuickSelect(arr, 5, PickRandom) << endl;
+    cout << "Brute:\t" << BruteNth(arr, 5) << endl;
+
+    ranges::sort(arr);
+    for (const auto &num: arr) cout << num << ", ";
+}
