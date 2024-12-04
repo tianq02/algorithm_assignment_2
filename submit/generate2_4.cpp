@@ -6,8 +6,7 @@
 #include <random>
 using namespace std;
 int main() {
-
-    int N = 10;
+    constexpr int N = 10;
 
     // generate test data
     pcg_extras::seed_seq_from<std::random_device> seed_source;

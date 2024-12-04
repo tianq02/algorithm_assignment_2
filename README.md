@@ -168,7 +168,7 @@ int main() {
 
     cin >> N;
     for (int i = 0; i < N; i++) {
-        double tmp;
+        int tmp;
         cin >> tmp;
         arr.push_back(tmp);
     }
